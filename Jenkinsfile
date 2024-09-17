@@ -20,5 +20,9 @@ pipeline {
                 '''
             }
         }
+
+        stage('Test'){
+            
+        }
     }
 }
