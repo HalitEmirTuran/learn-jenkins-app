@@ -26,6 +26,15 @@ pipeline {
                 sh '''
                 echo "Test süreci başlatılıyor.."
 
+                
+                if ls build/index.html; then
+                    echo "index.html var"
+                else
+                    echo "index.html yok"
+                    exit 1
+                fi
+                '''
+
             }
         }
     }
