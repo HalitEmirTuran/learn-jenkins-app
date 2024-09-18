@@ -34,6 +34,9 @@ pipeline {
                     echo "index.html yok"
                     exit 1
                 fi
+                echo "NPM VERSIYON KONTROL---------------"
+                npm --version
+                echo "NPM VERSIYON KONTROL---------------"
 
                 echo "Testler sürdürülüyor.."
 
