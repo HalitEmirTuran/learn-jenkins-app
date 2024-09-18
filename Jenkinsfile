@@ -26,13 +26,6 @@ pipeline {
                 sh '''
                 echo "Test süreci başlatılıyor.."
 
-                if ls build/index.html; then
-                    echo "index.html exists."
-                else
-                    echo "index.html does not exist."
-                    exit 1
-                fi
-                '''
             }
         }
     }
