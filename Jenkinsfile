@@ -30,7 +30,7 @@ pipeline {
                 }
             }
 
-            
+
             steps {
                 sh '''
                 echo "Test süreci başlatılıyor.."
@@ -45,7 +45,6 @@ pipeline {
                 fi
                 echo "NPM VERSIYON KONTROL---------------"
                 npm --version
-                echo "NPM VERSIYON KONTROL---------------"
 
                 echo "Testler sürdürülüyor.."
 
