@@ -34,24 +34,19 @@ pipeline {
 
                     steps {
                         sh '''
-                        echo "Test süreci başlatılıyor.."
+                        echo "Testler başlatılıyor.."
 
                         echo "Index dosyası kontrol ediliyor.."
 
                         if ls build/index.html; then
-                            echo "index.html var"
+                              echo "index.html var"
                         else
-                            echo "index.html yok"
-                            exit 1
+                              echo "index.html yok"
+                              exit 1
                         fi
-                        echo "NPM VERSIYON KONTROL---------------"
-                        npm --version
-
-                        echo "Testler sürdürülüyor.."
-
                         npm test
                         '''
-
+                    
                     }
 
 
