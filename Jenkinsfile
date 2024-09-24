@@ -119,6 +119,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    #!/bin/bash
                     docker run -d -p 3000:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
                     '''
                     echo "Application successfully deployed."
