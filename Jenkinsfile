@@ -4,7 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '22cc4b5c-6923-49b2-87fc-e8c9a5f922d9'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
-        DOCKER_IMAGE = 'kullanici_adin/myapp'
+        DOCKER_IMAGE = 'eevah/myapp'
         DOCKER_REGISTRY = 'docker.io'
         DOCKER_CREDENTIALS_ID = 'dockerhub_credentials'  
     }
@@ -19,7 +19,7 @@ pipeline {
             }
             steps {
                 sh '''
-                echo "Build started."
+                echo "Build started..."
                 ls -la
                 node --version
                 npm --version
