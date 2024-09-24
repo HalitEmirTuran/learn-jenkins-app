@@ -4,6 +4,9 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '22cc4b5c-6923-49b2-87fc-e8c9a5f922d9'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        DOCKER_IMAGE = 'kullanici_adin/myapp'
+        DOCKER_REGISTRY = 'docker.io'
+        DOCKER_CREDENTIALS_ID = 'dockerhub_credentials'  
     }
 
     stages {
@@ -26,6 +29,27 @@ pipeline {
                 '''
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS_ID}") {
+                        docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
+                    }
+                }
+            }
+        }
+
+
+
         stage('Tests'){
             parallel {
                 stage('Unit Tests'){
@@ -92,7 +116,19 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Docker') {
+            steps {
+                script {
+                    sh '''
+                    docker run -d -p 3000:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+                    '''
+                    echo "Application successfully deployed."
+                }
+            }
+        }
+        
+
+        stage('Deploy to Netlify') {
             agent{
                 docker{
                     image 'node:18-alpine'
