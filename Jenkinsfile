@@ -118,11 +118,10 @@ pipeline {
         stage('Deploy to Docker') {
             steps {
                 script {
-                    sh '''
-                    #!/bin/bash
-                    docker run -d -p 3000:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
-                    '''
-                    echo "Application successfully deployed."
+                sh '''
+                /bin/bash -c "docker run -d -p 3000:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                '''
+            echo "Application successfully deployed."
                 }
             }
         }
