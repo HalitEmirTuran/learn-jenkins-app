@@ -41,13 +41,12 @@ pipeline {
         stage('Docker Push') {
             steps {
                 script {
-                    docker.withRegistry("https://${DOCKER_REGISTRY}", "${DOCKER_CREDENTIALS_ID}") {
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
                         docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
                     }
-                }
-            }
+                }   
+             }
         }
-
 
 
         stage('Tests'){
