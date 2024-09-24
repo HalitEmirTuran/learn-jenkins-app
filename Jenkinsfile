@@ -126,6 +126,29 @@ pipeline {
                 }
             }
         }
+
+        stage('Run Docker Container Locally') {
+            steps {
+                script {
+                    sh '''
+                    # Docker container'ı yerel olarak çalıştırıyoruz
+                    docker run -d -p 3000:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+                    '''
+                    echo "Yerel Docker container başarıyla çalıştırıldı."
+                }
+            }
+        }
+
+        stage('Check Application') {
+            steps {
+                script {
+                    sh '''
+                    # Yerel container'ın çalışıp çalışmadığını kontrol etmek için
+                    curl http://localhost:3000
+                    '''
+                }
+            }
+        }
         
 
         stage('Deploy to Netlify') {
