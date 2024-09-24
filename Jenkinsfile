@@ -16,6 +16,7 @@ pipeline {
             }
             steps {
                 sh '''
+                echo "Build started."
                 ls -la
                 node --version
                 npm --version
