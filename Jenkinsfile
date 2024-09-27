@@ -105,15 +105,11 @@ pipeline {
             steps {
                 script {
                     def imageName = "${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                    
-                    // Önceki container'ları durdur ve kaldır
                     sh '''
                     docker ps -q --filter 'ancestor=''' + imageName + ''' | xargs -r docker stop || true
                     docker ps -aq --filter 'ancestor=''' + imageName + ''' | xargs -r docker rm || true
                     '''
-                    
-                    // Kullanılabilir bir port bul ve container'ı bu port ile çalıştır
-                    def basePort = 5001 // Yeni port numarası
+                    def basePort = 5002 
                     def maxRetries = 10
                     def portToUse = basePort
                     for (int i = 0; i < maxRetries; i++) {
@@ -133,8 +129,6 @@ pipeline {
                     if (portToUse >= basePort + maxRetries) {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
-
-                    // Container'ı dinamik port ile çalıştır
                     sh "docker run -d -p ${portToUse}:3000 ${imageName}"
                     echo "Uygulama başarıyla port ${portToUse} ile deploy edildi."
                 }
@@ -144,13 +138,11 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Önceki container'ları durdur ve kaldır
+
                     sh '''
                     docker ps -q --filter 'ancestor=''' + "${DOCKER_IMAGE}:${env.BUILD_NUMBER}" + ''' | xargs -r docker stop || true
                     docker ps -aq --filter 'ancestor=''' + "${DOCKER_IMAGE}:${env.BUILD_NUMBER}" + ''' | xargs -r docker rm || true
                     '''
-
-                    // Dinamik port bulma
                     def basePort = 3003
                     def maxRetries = 10
                     def portToUse = basePort
