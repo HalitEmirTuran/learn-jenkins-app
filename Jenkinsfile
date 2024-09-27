@@ -113,11 +113,9 @@ pipeline {
                     '''
                     
                     // Kullanılabilir bir port bul ve container'ı bu port ile çalıştır
-                    def basePort = 4000
-                    def maxRetries = 20  // Deneme sayısını artırdık
+                    def basePort = 5001 // Yeni port numarası
+                    def maxRetries = 10
                     def portToUse = basePort
-                    boolean portFound = false
-
                     for (int i = 0; i < maxRetries; i++) {
                         def isPortInUse = isUnix()
                             ? (sh(script: "netstat -an | grep :${portToUse}", returnStatus: true) == 0)
@@ -125,15 +123,14 @@ pipeline {
 
                         if (!isPortInUse) {
                             echo "Kullanılabilir port bulundu: ${portToUse}"
-                            portFound = true
                             break
                         } else {
                             echo "Port ${portToUse} kullanımda, başka bir port aranıyor..."
-                            portToUse++  // Kullanılabilir port bulmak için portu artır
+                            portToUse++
                         }
                     }
 
-                    if (!portFound) {
+                    if (portToUse >= basePort + maxRetries) {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
 
@@ -147,11 +144,10 @@ pipeline {
         stage('Run Docker Container Locally') {
             steps {
                 script {
-                    def basePort = 4000
-                    def maxRetries = 20  // Deneme sayısını artırdık
+                    def basePort = 5001 // Yeni port numarası
+                    def maxRetries = 10
                     def portToUse = basePort
-                    boolean portFound = false
-
+                    
                     for (int i = 0; i < maxRetries; i++) {
                         def isPortInUse = isUnix()
                             ? (sh(script: "netstat -an | grep :${portToUse}", returnStatus: true) == 0)
@@ -159,14 +155,13 @@ pipeline {
 
                         if (!isPortInUse) {
                             echo "Kullanılabilir port bulundu: ${portToUse}"
-                            portFound = true
                             break
                         } else {
-                            portToUse++  // Kullanılabilir port bulmak için portu artır
+                            portToUse++
                         }
                     }
 
-                    if (!portFound) {
+                    if (portToUse >= basePort + maxRetries) {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
 
@@ -176,13 +171,12 @@ pipeline {
                     '''
 
                     echo "Seçilen port: ${portToUse}"
-                    sh """
-                    docker run -d -p ${portToUse}:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
-                    """
+                    sh "docker run -d -p ${portToUse}:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
                     echo "Yerel Docker container başarıyla ${portToUse} portu ile çalıştırıldı."
                 }
             }
         }
+
    
 
         stage('Check Application') {
