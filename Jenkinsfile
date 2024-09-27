@@ -141,22 +141,27 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container Locally') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    def basePort = 5001 // Yeni port numarası
+                    // Önceki container'ları durdur ve kaldır
+                    sh '''
+                    docker ps -q --filter 'ancestor=''' + "${DOCKER_IMAGE}:${env.BUILD_NUMBER}" + ''' | xargs -r docker stop || true
+                    docker ps -aq --filter 'ancestor=''' + "${DOCKER_IMAGE}:${env.BUILD_NUMBER}" + ''' | xargs -r docker rm || true
+                    '''
+
+                    // Dinamik port bulma
+                    def basePort = 3003
                     def maxRetries = 10
                     def portToUse = basePort
-                    
                     for (int i = 0; i < maxRetries; i++) {
-                        def isPortInUse = isUnix()
-                            ? (sh(script: "netstat -an | grep :${portToUse}", returnStatus: true) == 0)
-                            : (sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0)
+                        def isPortInUse = sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0
 
                         if (!isPortInUse) {
                             echo "Kullanılabilir port bulundu: ${portToUse}"
                             break
                         } else {
+                            echo "Port ${portToUse} kullanımda, başka bir port aranıyor..."
                             portToUse++
                         }
                     }
@@ -165,14 +170,9 @@ pipeline {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
 
-                    sh '''
-                    docker ps -q --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker stop || true
-                    docker ps -aq --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker rm || true
-                    '''
-
-                    echo "Seçilen port: ${portToUse}"
+                    // Container'ı dinamik port ile çalıştır
                     sh "docker run -d -p ${portToUse}:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                    echo "Yerel Docker container başarıyla ${portToUse} portu ile çalıştırıldı."
+                    echo "Uygulama başarıyla port ${portToUse} ile deploy edildi."
                 }
             }
         }
