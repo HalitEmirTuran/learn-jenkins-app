@@ -113,8 +113,8 @@ pipeline {
                     '''
                     
                     // Kullanılabilir bir port bul ve container'ı bu port ile çalıştır
-                    def basePort = 3012
-                    def maxRetries = 10
+                    def basePort = 4000
+                    def maxRetries = 20  // Deneme sayısını artırdık
                     def portToUse = basePort
                     boolean portFound = false
 
@@ -129,7 +129,7 @@ pipeline {
                             break
                         } else {
                             echo "Port ${portToUse} kullanımda, başka bir port aranıyor..."
-                            portToUse++
+                            portToUse++  // Kullanılabilir port bulmak için portu artır
                         }
                     }
 
@@ -147,8 +147,8 @@ pipeline {
         stage('Run Docker Container Locally') {
             steps {
                 script {
-                    def basePort = 3001
-                    def maxRetries = 17
+                    def basePort = 4000
+                    def maxRetries = 20  // Deneme sayısını artırdık
                     def portToUse = basePort
                     boolean portFound = false
 
@@ -162,7 +162,7 @@ pipeline {
                             portFound = true
                             break
                         } else {
-                            portToUse++
+                            portToUse++  // Kullanılabilir port bulmak için portu artır
                         }
                     }
 
