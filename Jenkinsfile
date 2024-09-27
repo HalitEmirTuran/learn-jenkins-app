@@ -113,7 +113,7 @@ pipeline {
                     '''
                     
                     // Kullanılabilir bir port bul ve container'ı bu port ile çalıştır
-                    def basePort = 3000
+                    def basePort = 3012
                     def maxRetries = 10
                     def portToUse = basePort
                     for (int i = 0; i < maxRetries; i++) {
@@ -146,7 +146,7 @@ pipeline {
             steps {
                     script {
                         def usedPorts = []
-                        def basePort = 3000
+                        def basePort = 3001
                         def maxRetriess = 17
                         
                         def portToUse = basePort
