@@ -105,25 +105,52 @@ pipeline {
             steps {
                 script {
                     def imageName = "${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
+                    
+                    // Önceki container'ları durdur ve kaldır
                     sh '''
                     docker ps -q --filter 'ancestor=''' + imageName + ''' | xargs -r docker stop || true
                     docker ps -aq --filter 'ancestor=''' + imageName + ''' | xargs -r docker rm || true
                     '''
-                    sh "docker run -d -p 3000:3000 ${imageName}"
-                    echo "Application successfully deployed."
+                    
+                    // Kullanılabilir bir port bul ve container'ı bu port ile çalıştır
+                    def basePort = 3000
+                    def maxRetries = 10
+                    def portToUse = basePort
+                    for (int i = 0; i < maxRetries; i++) {
+                        def isPortInUse = isUnix()
+                            ? (sh(script: "lsof -i :${portToUse}", returnStatus: true) == 0)
+                            : (sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0)
+
+                        if (!isPortInUse) {
+                            echo "Kullanılabilir port bulundu: ${portToUse}"
+                            break
+                        } else {
+                            echo "Port ${portToUse} kullanımda, başka bir port aranıyor..."
+                            portToUse++
+                        }
+                    }
+
+                    if (portToUse >= basePort + maxRetries) {
+                        error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
+                    }
+
+                    // Container'ı dinamik port ile çalıştır
+                    sh "docker run -d -p ${portToUse}:3000 ${imageName}"
+                    echo "Uygulama başarıyla port ${portToUse} ile deploy edildi."
                 }
             }
         }
+
 
                 stage('Run Docker Container Locally') {
             steps {
                     script {
                         def usedPorts = []
                         def basePort = 3000
-                        def maxRetries = 10
+                        def maxRetriess = 17
                         
                         def portToUse = basePort
-                        for (int i = 0; i < maxRetries; i++) {
+                        for (int i = 0; i < maxRetriess; i++) {
                             def isPortInUse = isUnix()
                                 ? (sh(script: "lsof -i :${portToUse}", returnStatus: true) == 0)
                                 : (sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0)
