@@ -116,6 +116,8 @@ pipeline {
                     def basePort = 3012
                     def maxRetries = 10
                     def portToUse = basePort
+                    boolean portFound = false
+
                     for (int i = 0; i < maxRetries; i++) {
                         def isPortInUse = isUnix()
                             ? (sh(script: "netstat -an | grep :${portToUse}", returnStatus: true) == 0)
@@ -123,6 +125,7 @@ pipeline {
 
                         if (!isPortInUse) {
                             echo "Kullanılabilir port bulundu: ${portToUse}"
+                            portFound = true
                             break
                         } else {
                             echo "Port ${portToUse} kullanımda, başka bir port aranıyor..."
@@ -130,7 +133,7 @@ pipeline {
                         }
                     }
 
-                    if (portToUse >= basePort + maxRetries) {
+                    if (!portFound) {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
 
@@ -144,11 +147,11 @@ pipeline {
         stage('Run Docker Container Locally') {
             steps {
                 script {
-                    def usedPorts = []
                     def basePort = 3001
                     def maxRetries = 17
-                    
                     def portToUse = basePort
+                    boolean portFound = false
+
                     for (int i = 0; i < maxRetries; i++) {
                         def isPortInUse = isUnix()
                             ? (sh(script: "netstat -an | grep :${portToUse}", returnStatus: true) == 0)
@@ -156,14 +159,14 @@ pipeline {
 
                         if (!isPortInUse) {
                             echo "Kullanılabilir port bulundu: ${portToUse}"
+                            portFound = true
                             break
                         } else {
-                            usedPorts.add(portToUse)
                             portToUse++
                         }
                     }
 
-                    if (usedPorts.size() == maxRetries) {
+                    if (!portFound) {
                         error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
                     }
 
