@@ -115,44 +115,45 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container Locally') {
+                stage('Run Docker Container Locally') {
             steps {
-                script {
-                    def usedPorts = []
-                    def basePort = 3000
-                    def maxRetries = 10
-                    
-                    def portToUse = basePort
-                    for (int i = 0; i < maxRetries; i++) {
-                        def isPortInUse = isUnix()
-                            ? (sh(script: "lsof -i :${portToUse}", returnStatus: true) == 0)
-                            : (sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0)
+                    script {
+                        def usedPorts = []
+                        def basePort = 3000
+                        def maxRetries = 10
+                        
+                        def portToUse = basePort
+                        for (int i = 0; i < maxRetries; i++) {
+                            def isPortInUse = isUnix()
+                                ? (sh(script: "lsof -i :${portToUse}", returnStatus: true) == 0)
+                                : (sh(script: "netstat -an | findstr :${portToUse}", returnStatus: true) == 0)
 
-                        if (!isPortInUse) {
-                            echo "Kullanılabilir port bulundu: ${portToUse}"
-                            break
-                        } else {
-                            usedPorts.add(portToUse)
-                            portToUse++
+                            if (!isPortInUse) {
+                                echo "Kullanılabilir port bulundu: ${portToUse}"
+                                break
+                            } else {
+                                usedPorts.add(portToUse)
+                                portToUse++
+                            }
                         }
+
+                        if (usedPorts.size() == maxRetries) {
+                            error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
+                        }
+
+                        sh '''
+                        docker ps -q --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker stop || true
+                        docker ps -aq --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker rm || true
+                        '''
+
+                        echo "Seçilen port: ${portToUse}"
+                        sh """
+                        docker run -d -p ${portToUse}:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+                        """
+                        echo "Yerel Docker container başarıyla ${portToUse} portu ile çalıştırıldı."
                     }
-
-                    if (usedPorts.size() == maxRetries) {
-                        error "Tüm denenen portlar kullanımda. Lütfen portları kontrol edin."
-                    }
-
-                    sh '''
-                    docker ps -q --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker stop || true
-                    docker ps -aq --filter 'ancestor=${DOCKER_IMAGE}:${env.BUILD_NUMBER}' | xargs -r docker rm || true
-                    '''
-
-                    sh """
-                    docker run -d -p ${portToUse}:3000 ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
-                    """
-                    echo "Yerel Docker container başarıyla ${portToUse} portu ile çalıştırıldı."
                 }
             }
-        }
 
         stage('Check Application') {
             steps {
